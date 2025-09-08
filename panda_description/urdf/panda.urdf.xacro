@@ -53,6 +53,7 @@
   <!-- Properties -->
   <!--            -->
   <!-- Prefixes -->
+  <xacro:property name="robot_name" value="$(arg name)"/>
   <xacro:property name="prefix_arm" value="$(arg prefix)"/>
   <xacro:property name="prefix_gripper" value="$(arg prefix)"/>
 
@@ -110,7 +111,10 @@
   <!-- Gazebo - ROS 2 control (Ignition) -->
   <xacro:if value="$(arg ros2_control)">
     <xacro:if value="${'gz' in '$(arg ros2_control_plugin)'}">
-      <xacro:ign_ros2_control controller_parameters="$(arg ros2_controller_parameters)"/>
+      <xacro:ign_ros2_control 
+        controller_parameters="$(arg ros2_controller_parameters)"
+        prefix="${robot_name}"
+      />
     </xacro:if>
   </xacro:if>
 

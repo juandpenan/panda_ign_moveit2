@@ -18,6 +18,10 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import TextSubstitution
+from launch import LaunchContext
+from launch.actions import OpaqueFunction
+
 
 
 def generate_launch_description():
@@ -48,6 +52,7 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
     use_sim_time = LaunchConfiguration("use_sim_time")
     log_level = LaunchConfiguration("log_level")
+    namespace = LaunchConfiguration("namespace")
 
     # URDF
     _robot_description_xml = Command(
@@ -215,12 +220,14 @@ def generate_launch_description():
             LaunchConfiguration("__controller_parameters_basename"),
         ]
     )
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
     # List of nodes to be launched
     nodes = [
         # robot_state_publisher
         Node(
             package="robot_state_publisher",
+            namespace=namespace,
             executable="robot_state_publisher",
             output="log",
             arguments=["--ros-args", "--log-level", log_level],
@@ -232,10 +239,12 @@ def generate_launch_description():
                     "use_sim_time": use_sim_time,
                 },
             ],
+            # remappings=remappings,
         ),
         # ros2_control_node (only for fake controller)
         Node(
             package="controller_manager",
+            namespace=namespace,
             executable="ros2_control_node",
             output="log",
             arguments=["--ros-args", "--log-level", log_level],
@@ -262,6 +271,7 @@ def generate_launch_description():
         Node(
             package="moveit_ros_move_group",
             executable="move_group",
+            namespace=namespace,
             output="log",
             arguments=["--ros-args", "--log-level", log_level],
             parameters=[
@@ -276,28 +286,30 @@ def generate_launch_description():
                 {"use_sim_time": use_sim_time},
             ],
         ),
-        # move_servo
-        Node(
-            package="moveit_servo",
-            executable="servo_node",
-            output="log",
-            arguments=["--ros-args", "--log-level", log_level],
-            parameters=[
-                robot_description,
-                robot_description_semantic,
-                robot_description_kinematics,
-                joint_limits,
-                planning_pipeline,
-                trajectory_execution,
-                planning_scene_monitor_parameters,
-                servo_params,
-                {"use_sim_time": use_sim_time},
-            ],
-            condition=IfCondition(enable_servo),
-        ),
+        # # move_servo
+        # Node(
+        #     package="moveit_servo",
+        #     executable="servo_node",
+        #     namespace=namespace,
+        #     output="log",
+        #     arguments=["--ros-args", "--log-level", log_level],
+        #     parameters=[
+        #         robot_description,
+        #         robot_description_semantic,
+        #         robot_description_kinematics,
+        #         joint_limits,
+        #         planning_pipeline,
+        #         trajectory_execution,
+        #         planning_scene_monitor_parameters,
+        #         servo_params,
+        #         {"use_sim_time": use_sim_time},
+        #     ],
+        #     condition=IfCondition(enable_servo),
+        # ),
         # rviz2
         Node(
             package="rviz2",
+            namespace=namespace,
             executable="rviz2",
             output="log",
             arguments=[
@@ -320,21 +332,66 @@ def generate_launch_description():
     ]
 
     # Add nodes for loading controllers
-    for controller in moveit_controller_manager_yaml["controller_names"] + [
-        "joint_state_broadcaster"
+    # for controller in moveit_controller_manager_yaml['controller_names'] + [
+    #     'joint_state_broadcaster'
+    # ]:
+    #     nodes.append(
+    #         # controller_manager_spawner
+    #         Node(
+    #             package='controller_manager',
+    #             executable='spawner',
+    #             output='log',
+    #             arguments=[
+    #                 controller,
+    #                 '--namespace',
+    #                 namespace,
+    #                 '--ros-args',
+    #                 # '-r', '__ns:=/', namespace,
+    #                 '--log-level', log_level
+    #             ],
+    #             parameters=[{'use_sim_time': use_sim_time}],
+    #         ),
+    #     )
+
+    return LaunchDescription(declared_arguments + nodes + [OpaqueFunction(function=launch_controllers)])
+
+
+def launch_controllers(context: LaunchContext):
+    """Count the number of robots from the 'robots' launch argument."""
+    moveit_config_package = 'panda_moveit_config'
+    namespace = LaunchConfiguration('namespace').perform(context)
+    log_level = LaunchConfiguration('log_level').perform(context)
+    use_sim_time_str = LaunchConfiguration('use_sim_time').perform(context)
+    use_sim_time = use_sim_time_str.lower() in ['true', '1', 'yes']
+
+    moveit_controller_manager_yaml = load_yaml(
+        moveit_config_package, path.join("config", "moveit_controller_manager.yaml")
+    )
+    nodes = []
+    for controller in moveit_controller_manager_yaml['controller_names'] + [
+        'joint_state_broadcaster'
     ]:
+        print(f"Spawning controller: {controller}")
         nodes.append(
             # controller_manager_spawner
             Node(
-                package="controller_manager",
-                executable="spawner",
-                output="log",
-                arguments=[controller, "--ros-args", "--log-level", log_level],
-                parameters=[{"use_sim_time": use_sim_time}],
+                package='controller_manager',
+                executable='spawner',
+                # namespace=namespace,
+                output='log',
+                arguments=[
+                    controller,
+                    '-c',
+                    '{}/controller_manager'.format(namespace),
+                    '--ros-args',
+                    # '-r', '__ns:=/' + namespace,
+                    '--log-level', log_level
+                ],
+                parameters=[{'use_sim_time': use_sim_time}],
             ),
         )
 
-    return LaunchDescription(declared_arguments + nodes)
+    return nodes
 
 
 def load_yaml(package_name: str, file_path: str):
@@ -476,4 +533,9 @@ def generate_declared_arguments() -> List[DeclareLaunchArgument]:
             default_value="debug",
             description="The level of logging that is applied to all ROS 2 nodes launched by this script.",
         ),
+        DeclareLaunchArgument(
+            "namespace",
+            default_value="",
+            description="Namespace for all launched nodes.",
+        )
     ]

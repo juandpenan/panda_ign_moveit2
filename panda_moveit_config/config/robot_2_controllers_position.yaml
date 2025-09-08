@@ -1,34 +1,39 @@
-/**/controller_manager:
+controller_manager:
   ros__parameters:
     update_rate: 250
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+
     gripper_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-/**/joint_trajectory_controller:
+
+joint_trajectory_controller:
   ros__parameters:
     joints:
-    - robot1_joint1
-    - robot1_joint2
-    - robot1_joint3
-    - robot1_joint4
-    - robot1_joint5
-    - robot1_joint6
-    - robot1_joint7
+      - panda_joint1
+      - panda_joint2
+      - panda_joint3
+      - panda_joint4
+      - panda_joint5
+      - panda_joint6
+      - panda_joint7
     command_interfaces:
-    - position
+      - position
     state_interfaces:
-    - position
-    - velocity
-/**/gripper_trajectory_controller:
+      - position
+      - velocity
+
+gripper_trajectory_controller:
   ros__parameters:
     joints:
-    - robot1_finger_joint1
-    - robot1_finger_joint2
+      - panda_finger_joint1
+      - panda_finger_joint2
     command_interfaces:
-    - position
+      - position
     state_interfaces:
-    - position
-    - velocity
+      - position
+      - velocity

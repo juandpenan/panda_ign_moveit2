@@ -7,12 +7,16 @@
   <!--       -->
   <xacro:macro name="ign_ros2_control" params="
    controller_parameters
+   prefix
   ">
     <gazebo>
-<!--      <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin"> -->
      <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system">
         <parameters>${controller_parameters}</parameters>
-      </plugin>
+        <ros>
+          <namespace>${prefix}</namespace>
+            <!-- <remapping>/robot_description:=${prefix}/robot_description</remapping> -->
+        </ros>
+     </plugin>
     </gazebo>
   </xacro:macro>
 
