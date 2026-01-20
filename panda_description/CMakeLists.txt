@@ -15,6 +15,7 @@ install(PROGRAMS
     ${SCRIPTS_DIR}/xacro2sdf_direct.bash
     ${SCRIPTS_DIR}/xacro2sdf.bash
     ${SCRIPTS_DIR}/xacro2urdf.bash
+    ${SCRIPTS_DIR}/multixacro2sdf.bash
     DESTINATION lib/${PROJECT_NAME}
 )
 

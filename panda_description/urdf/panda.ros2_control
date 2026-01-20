@@ -20,7 +20,7 @@
   ">
     <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_joint_positions']['panda_arm']}"/>
 
-    <ros2_control name="${name}" type="system">
+    <ros2_control name="${name}_arm" type="system">
       <hardware>
         <xacro:if value="${plugin == 'fake'}">
           <plugin>fake_components/GenericSystem</plugin>
@@ -164,7 +164,7 @@
   ">
     <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_joint_positions']['panda_gripper']}"/>
 
-    <ros2_control name="${name}" type="system">
+    <ros2_control name="${name}_gripper" type="system">
       <hardware>
         <xacro:if value="${plugin == 'fake'}">
           <plugin>fake_components/GenericSystem</plugin>

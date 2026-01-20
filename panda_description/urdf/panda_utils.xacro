@@ -19,6 +19,7 @@
     mu:=1.0
     mesh_offset_rpy:=${mesh_offset_rpy}
     gazebo_self_collide:=false
+    color:=none
   ">
     <link name="${link_name}">
       <visual>
@@ -26,6 +27,11 @@
         <geometry>
           <mesh filename="package://panda_description/meshes/visual/${mesh}.dae"/>
         </geometry>
+        <xacro:unless value="${color == 'none'}">
+          <material name="${link_name}_material">
+            <color rgba="${color}"/>
+          </material>
+        </xacro:unless>
       </visual>
 
       <xacro:if value="${collision}">
@@ -46,6 +52,13 @@
       <xacro:if value="${gazebo_self_collide}">
         <self_collide>true</self_collide>
       </xacro:if>
+      <xacro:unless value="${color == 'none'}">
+        <material>
+          <ambient>${color}</ambient>
+          <diffuse>${color}</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </xacro:unless>
     </gazebo>
   </xacro:macro>
 

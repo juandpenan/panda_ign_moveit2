@@ -7,6 +7,7 @@
   <!--                   -->
   <xacro:include filename="$(find panda_description)/urdf/panda_utils.xacro"/>
   <xacro:include filename="$(find panda_description)/urdf/panda.ros2_control"/>
+  <xacro:include filename="$(find panda_description)/urdf/sensors.xacro"/>
 
 
   <!--            -->
@@ -50,7 +51,7 @@
   <xacro:property name="ee_name" value="hand_tcp"/>
   <xacro:property name="ee_origin_xyz" value="0 0 0.1034"/>
   <xacro:property name="ee_origin_rpy" value="0 0 0"/>
-
+  <xacro:property name="default_initial_positions_file" value="$(find panda_description)/config/initial_joint_positions.yaml"/>
 
   <!--       -->
   <!-- Macro -->
@@ -58,6 +59,7 @@
   <xacro:property name="default_origin_xyz" value="0 0 0"/>
   <xacro:property name="default_origin_rpy" value="0 0 0"/>
   <xacro:macro name="panda_gripper" params="
+    name
     wrist_flange
     prefix:=panda_
     origin_xyz:=${default_origin_xyz}
@@ -67,6 +69,8 @@
     ros2_control_plugin:=fake
     ros2_control_command_interface:=effort
     gazebo_preserve_fixed_joint:=false
+    initial_positions_file:=${default_initial_positions_file}
+    use_cam:=false
   ">
     <!-- Wrist -->
     <xacro:panda_joint
@@ -145,9 +149,30 @@
     />
 
     <!-- ROS 2 control -->
+    <!-- name="${name}" -->
     <xacro:if value="${ros2_control}">
-      <xacro:ros2_control_panda_gripper prefix="${prefix}" plugin="${ros2_control_plugin}" command_interface="${ros2_control_command_interface}"/>
+      <xacro:ros2_control_panda_gripper
+        name="${name}"
+        prefix="${prefix}"
+        plugin="${ros2_control_plugin}"
+        command_interface="${ros2_control_command_interface}"
+        initial_positions_file="${initial_positions_file}"/>
     </xacro:if>
-  </xacro:macro>
 
+    <!-- Camera -->
+    <!-- <xacro:property name="camera_origin_xyz" value="0.5 0 1.7"/>
+    <xacro:property name="camera_origin_rpy" value="1.5708 1.5708 0"/> -->
+    <!-- 0.47 -->
+    <xacro:property name="camera_origin_xyz" value="1.0 -0.8 1.25"/> 
+    <xacro:property name="camera_origin_rpy" value="0 0.685 2.35619"/>
+
+    <xacro:if value="${use_cam}">
+      <xacro:camera 
+        name="${prefix}gripper_camera"
+        parent="${prefix}link0"
+        joint_origin_xyz="${camera_origin_xyz}"
+        joint_origin_rpy="${camera_origin_rpy}" />
+    </xacro:if>
+    
+  </xacro:macro>
 </robot>

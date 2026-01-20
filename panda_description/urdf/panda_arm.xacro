@@ -118,6 +118,7 @@
   <xacro:property name="wrist_flange_name" value="link8"/>
   <xacro:property name="wrist_flange_origin_xyz" value="0 0 0.107"/>
   <xacro:property name="wrist_flange_origin_rpy" value="0 0 ${-pi/4}"/>
+  <xacro:property name="default_initial_positions_file" value="$(find panda_description)/config/initial_joint_positions.yaml"/>
 
 
   <!--       -->
@@ -126,6 +127,7 @@
   <xacro:property name="default_origin_xyz" value="0 0 0"/>
   <xacro:property name="default_origin_rpy" value="0 0 0"/>
   <xacro:macro name="panda_arm" params="
+    name
     base_parent
     prefix:=panda_
     origin_xyz:=${default_origin_xyz}
@@ -139,6 +141,8 @@
     ros2_control_plugin:=fake
     ros2_control_command_interface:=effort
     gazebo_preserve_fixed_joint:=false
+    initial_positions_file:=${default_initial_positions_file}
+    link5_color:=none
   ">
     <!-- Base -->
     <xacro:panda_joint
@@ -295,6 +299,7 @@
     mesh="${link5_mesh}"
     collision="${collision}"
     mu="${link5_mu}"
+    color="${link5_color}"
     />
 
     <!-- 6 -->
@@ -362,9 +367,15 @@
     gazebo_preserve_fixed_joint="${gazebo_preserve_fixed_joint}"
     />
 
+    <!-- name="${name}" -->
     <!-- ROS 2 control -->
     <xacro:if value="${ros2_control}">
-      <xacro:ros2_control_panda_arm prefix="${prefix}" plugin="${ros2_control_plugin}" command_interface="${ros2_control_command_interface}"/>
+      <xacro:ros2_control_panda_arm
+       name="${name}"
+       prefix="${prefix}"
+       plugin="${ros2_control_plugin}"
+       command_interface="${ros2_control_command_interface}"
+       initial_positions_file="${initial_positions_file}"/>
     </xacro:if>
   </xacro:macro>
 
